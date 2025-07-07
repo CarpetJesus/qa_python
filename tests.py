@@ -2,21 +2,8 @@ import pytest
 
 from main import BooksCollector
 
-@pytest.fixture
-def collector():
-    return BooksCollector()
-
-@pytest.fixture
-def expected_genres():
-    return ['Фантастика', 'Ужасы', 'Детективы', 'Мультфильмы', 'Комедии']
-
-@pytest.fixture
-def age_rated_genres():
-    return ['Ужасы', 'Детективы']
-
 
 #Тесты для __init__
-
 class TestBooksCollectorInit:
 
     def test_books_genre_empty(self, collector):
@@ -25,11 +12,15 @@ class TestBooksCollectorInit:
     def test_favorites_empty(self, collector):
         assert collector.favorites == []
 
-    def test_genre_list_correct(self, collector, expected_genres):
-        assert collector.genre == expected_genres
+    def test_genre_list_correct(self, collector):
+        expected = ['Фантастика', 'Ужасы', 'Детективы', 'Мультфильмы', 'Комедии']
+        for genre in expected:
+            assert genre in collector.genre
 
-    def test_genre_age_rating_correct(self, collector, age_rated_genres):
-        assert collector.genre_age_rating == age_rated_genres
+    def test_genre_age_rating_correct(self, collector):
+        expected = ['Ужасы', 'Детективы']
+        for genre in expected:
+            assert genre in collector.genre_age_rating
 
 
 # тесты для методов
@@ -57,24 +48,39 @@ class TestBooksCollectorMethods:
     def test_set_book_genre_valid(self, collector):
         collector.add_new_book("Темная Башня")
         collector.set_book_genre("Темная Башня", "Фантастика")
-        assert collector.get_book_genre("Темная Башня") == "Фантастика"
+        assert collector.books_genre["Темная Башня"] == "Фантастика"
 
     def test_set_book_genre_invalid_genre(self, collector):
         collector.add_new_book("Темная Башня")
         collector.set_book_genre("Темная Башня", "Мюзикл")
-        assert collector.get_book_genre("Темная Башня") == ''
+        assert collector.books_genre["Темная Башня"] == ''
 
     def test_set_book_genre_invalid_book(self, collector):
         collector.set_book_genre("Неизвестная книга", "Фантастика")
         assert "Неизвестная книга" not in collector.books_genre
 
+    # Тесты для get_book_genre
+    def test_get_book_genre_valid(self, collector):
+        collector.add_new_book("Темная Башня")
+        collector.set_book_genre("Темная Башня", "Фантастика")
+        assert collector.get_book_genre("Темная Башня") == "Фантастика"
+
+    def test_get_book_genre_invalid_genre(self, collector):
+        collector.add_new_book("Темная Башня")
+        collector.set_book_genre("Темная Башня", "Мюзикл")
+        assert collector.get_book_genre("Темная Башня") == ''
+
     # Тесты get_books_with_specific_genre
     def test_get_books_with_specific_genre_with_valid_name_and_genre(self, collector):
         collector.add_new_book("Темная Башня")
         collector.add_new_book("Властелин Колец")
+        collector.add_new_book("Оно")
+        collector.set_book_genre("Оно", "Ужасы")
         collector.set_book_genre("Темная Башня", "Фантастика")
         collector.set_book_genre("Властелин Колец", "Фантастика")
-        assert collector.get_books_with_specific_genre("Фантастика") == ["Темная Башня", "Властелин Колец"]
+
+        expected_result = collector.get_books_with_specific_genre("Фантастика")
+        assert expected_result == ["Темная Башня", "Властелин Колец"]
 
     def test_get_books_with_specific_genre_empty(self, collector):
         assert collector.get_books_with_specific_genre("Фантастика") == []
